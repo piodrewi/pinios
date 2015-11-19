@@ -19,9 +19,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="lol.bmp">
-      <Filter>Source Files</Filter>
-    </Image>
-  </ItemGroup>
 </Project>
