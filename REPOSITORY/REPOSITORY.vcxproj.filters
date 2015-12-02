@@ -19,4 +19,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="2.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="2a.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="mapa.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="wiezyczka2.png">
+      <Filter>Source Files</Filter>
+    </Image>
+    <Image Include="wrogie.png">
+      <Filter>Source Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
