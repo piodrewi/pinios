@@ -4,17 +4,27 @@
 #include <allegro5\allegro_image.h>
 #include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
+#include <math.h>
+#include "Header.h"
 
 enum KLUCZE{ LEWO, PRAWO };
+const int NUM_BULLETS = 5;
+const int maxFrame = 3;
+const int width = 1366;
+const int height = 768;
 
+void InitBullet(Bullet bullet[], int size);
+void DrawBullet(Bullet bullet[], int size);
+void FireBullet(Bullet bullet[], int size,int pos_x);
+void UpdateBullet(Bullet bullet[], int size, int pozycja_myszki_Y);
 
 int main(void)
 {
-	int width = 1366;
-	int height = 768;
+	
 	int FPS = 60;
 
-	const int maxFrame = 3;
+	Bullet bullets[5];
+	
 	int curFrame = 0;
 	int frameCount = 0;
 	int frameDelay = 5;
@@ -26,12 +36,12 @@ int main(void)
 
 	bool lewo = false;	// ZMIENNE DO ZMIANY BITMAPY
 	bool prawo = false;		// LEWO<->PRAWO
-	
-	int pozycja_myszki_X = 0;
-	int pozycja_myszki_y = 0;
+
+	double pozycja_myszki_X = 0;
+	double pozycja_myszki_Y = 0;
 
 	int pos_x = 115; // POZYCJA CZARODZIEJA + OGRANICZENIE RUCHU
-	
+
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_BITMAP *czarodziej = NULL;
@@ -66,7 +76,7 @@ int main(void)
 	al_init_ttf_addon();
 	al_install_keyboard();
 	al_install_mouse();
-	
+
 
 	mapa = al_load_bitmap("mapa.png");
 	czarodziej = al_load_bitmap("2.png");
@@ -78,7 +88,8 @@ int main(void)
 	ataki = al_load_bitmap("ataki.png");
 
 	timer = al_create_timer(1.0 / FPS);
-	
+	InitBullet(bullets, NUM_BULLETS);
+
 	event_queue = al_create_event_queue();
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
 	al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -119,22 +130,19 @@ int main(void)
 				break;
 			}
 		}
-	/*	else if (ev.type == ALLEGRO_EVENT_MOUSE_AXES)
+		else if (ev.type == ALLEGRO_EVENT_MOUSE_AXES)
 		{
-			pozycja_myszki_X = ev.mouse.x;
-			pozycja_myszki_y = ev.mouse.y;
+		pozycja_myszki_X = ev.mouse.x;
+		pozycja_myszki_Y = ev.mouse.y;
 		}
-
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
 		{
-			if (ev.mouse.button & 1)
-			{
-				al_draw_bitmap(czarodziej_strzal2, pos_x, 140, 0);
-				al_draw_filled_circle(500, 300, 25, al_map_rgb(255, 125, 125));
-				al_flip_display();
-				al_rest(1.0);
-			}
-		}*/// zakomentowana akcja myszki.
+		if (ev.mouse.button & 1)
+		{
+			FireBullet(bullets, NUM_BULLETS, pos_x);
+			al_flip_display();
+		}
+		}
 
 		else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		{
@@ -149,16 +157,16 @@ int main(void)
 			{
 				curFrame = 0;
 			}
-				
-				frameCount = 0;
+
+			frameCount = 0;
 		}
 
-		x =x-1;
+		x = x - 1;
 
 		if (x <= 420 - frameWidth)
-			x = width;
+			x = 300;
 		al_draw_bitmap_region(wrogowie, curFrame * frameWidth, 0, frameWidth, frameHeight, x, 590, 0);
-
+		UpdateBullet(bullets, NUM_BULLETS, pozycja_myszki_Y);
 		if (pos_x < 90)
 		{
 			pos_x += 0;
@@ -196,7 +204,7 @@ int main(void)
 		{
 			al_draw_bitmap(czarodziej2, pos_x, 140, 0);
 		} // PORUSZANIE CZARODZIEJA
-		
+		DrawBullet(bullets, NUM_BULLETS);
 		al_flip_display();
 	}
 
@@ -212,4 +220,49 @@ int main(void)
 	al_destroy_display(display);
 
 	return 0;
+}
+void InitBullet(Bullet bullet[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		bullet[i].ID = BULLET;
+		bullet[i].speed = 10;
+		bullet[i].live = false;
+	}
+}
+void DrawBullet(Bullet bullet[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (bullet[i].live)
+		{
+			al_draw_filled_circle(bullet[i].x, 270, 2, al_map_rgb(255, 0, 0));
+		}
+	}
+}
+void FireBullet(Bullet bullet[], int size,int pos)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (!bullet[i].live)
+		{
+			bullet[i].x = pos+145;
+			bullet[i].y = 140;
+			bullet[i].live = true;
+			break;
+		}
+	}
+}
+void UpdateBullet(Bullet bullet[], int size,int pozycja_myszki_Y)
+{
+	double sin;
+	for (int i = 0; i < size; i++)
+	{
+		if (bullet[i].live)
+		{
+			bullet[i].x +=bullet[i].speed;
+			if (bullet[i].x > width)
+				bullet[i].live = false;
+		}
+	}
 }
