@@ -25,7 +25,9 @@ struct Bullet
 		int x;
 		int y;
 		bool live;
-		int speed;
+		float speedx;
+		float speedy;
+		float angle;
 };
 struct Enemy
 {

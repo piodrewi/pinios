@@ -27,8 +27,8 @@ void MovePlayerRight(Player &player);
 
 void InitBullet(Bullet bullet[], int size);
 void DrawBullet(Bullet bullet[], int size);
-void FireBullet(Bullet bullet[], int size,Player &player);
-void UpdateBullet(Bullet bullet[], int size);
+void FireBullet(Bullet bullet[], int size, Player &player);
+void UpdateBullet(Bullet bullet[], int size,double  pozycja_myszki_X, double  pozycja_myszki_Y);
 
 void InitEnemy(Enemy &enemy);
 void DrawEnemy(Enemy &enemy, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie);
@@ -140,7 +140,7 @@ int main(void)
 			if (keys[RIGHT])
 				MovePlayerRight(player);
 			
-			UpdateBullet(bullets, NUM_BULLETS);
+			UpdateBullet(bullets, NUM_BULLETS,pozycja_myszki_X,pozycja_myszki_Y);
 			UpdateEnemy(enemy, maxFrame, curFrame, frameCount, frameDelay, frameWidth, frameHeight, wrogowie,czarodziej2);
 			StartEnemy(enemy);
 		}
@@ -253,8 +253,10 @@ void InitBullet(Bullet bullet[], int size)
 	for (int i = 0; i < size; i++)
 	{
 		bullet[i].ID = BULLET;
-		bullet[i].speed = 10;
+		bullet[i].speedx = 0;
+		bullet[i].speedy = 0;
 		bullet[i].live = false;
+		bullet[i].angle = 0;
 	}
 }
 void DrawBullet(Bullet bullet[], int size)
@@ -278,14 +280,16 @@ void FireBullet(Bullet bullet[], int size,Player &player)
 		}
 	}
 }
-void UpdateBullet(Bullet bullet[], int size)
+void UpdateBullet(Bullet bullet[], int size, double  pozycja_myszki_X, double  pozycja_myszki_Y)
 {
 	for (int i = 0; i < size; i++)
 	{
 		if (bullet[i].live)
 		{
-			bullet[i].x += bullet[i].speed;
-			if (bullet[i].x > width)
+			bullet[i].angle =atan2(pozycja_myszki_X,pozycja_myszki_Y);
+			bullet[i].x += sin(bullet[i].angle) * 5;
+			bullet[i].y += cos(bullet[i].angle) * 5;
+			if (bullet[i].x > width || bullet[i].y>height)
 				bullet[i].live = false;
 		}
 
