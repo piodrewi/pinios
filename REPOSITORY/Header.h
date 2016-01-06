@@ -43,7 +43,11 @@ struct Enemy
 	int frameCount;
 	int frameDelay;
 	int frameWidth;
+	int frameWidth1;
 	int frameHeight;
+	int frameHeight1;
 	int animationColumns;
+	int animationColumns1;
 	int animationDirection;
+	
 };
