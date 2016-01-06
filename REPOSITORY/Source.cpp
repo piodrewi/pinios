@@ -15,6 +15,9 @@ const int NUM_BULLETS = 5;
 const int NUM_ENEMYS = 5;
 const int maxFrame = 8;
 
+int licznik1 = 0;
+int licznik2 = 0;
+
 enum KEYS{ LEFT, RIGHT };
 bool keys[2] = { FALSE, FALSE };
 
@@ -307,7 +310,7 @@ void InitEnemy(Enemy enemy[],int size)
 		enemy[i].speed = 3;
 		enemy[i].boundx = 120;
 		enemy[i].boundy = -128; 
-		enemy[i].maxFrame = 143;
+		enemy[i].maxFrame = 8;
 		enemy[i].curFrame = 0;
 		enemy[i].frameCount = 0;
 		enemy[i].frameDelay = 20;
@@ -315,8 +318,8 @@ void InitEnemy(Enemy enemy[],int size)
 		enemy[i].frameWidth1 = 180;
 		enemy[i].frameHeight = 128;
 		enemy[i].frameHeight1 = 131;
-		enemy[i].animationColumns = 81;
-		enemy[i].animationColumns1 = 31;
+		enemy[i].animationColumns = 3000;
+		enemy[i].animationColumns1 = 3000;
 		enemy[i].animationDirection = 1;
 
 	}
@@ -332,17 +335,12 @@ void DrawEnemy(Enemy enemy[], int size, int maxFrame, int curFrame, int frameCou
 			int fy = (enemy[i].curFrame / enemy[i].animationColumns)*enemy[i].frameHeight;
 			int fxx = (enemy[i].curFrame % enemy[i].animationColumns1)*enemy[i].frameWidth1;
 			int fyy = (enemy[i].curFrame / enemy[i].animationColumns1)*enemy[i].frameHeight1;
-			if (enemy[i].x <= 370)
-			{
-			al_draw_bitmap_region(ataki, fxx, fyy, enemy[i].frameWidth1, enemy[i].frameHeight1, enemy[i].x - enemy[i].frameWidth1 / 2, enemy[i].y, 0);
-			//al_draw_filled_rectangle(280, height - 60, 440, height - 180, al_map_rgba(255, 0, 255, 100));
 
-			}
+			if (enemy[i].x <= 370)
+			al_draw_bitmap_region(ataki, fxx, fyy, enemy[i].frameWidth1, enemy[i].frameHeight1, enemy[i].x - enemy[i].frameWidth1 / 2, enemy[i].y, 0);
+			
 			else
-			{
-			al_draw_bitmap_region(wrogowie, fx, fy, enemy[i].frameWidth, enemy[i].frameHeight, enemy[i].x - enemy[i].frameWidth / 2, enemy[i].y, 0);
-			al_draw_filled_rectangle(enemy[i].x - (enemy[i].boundx / 2), enemy[i].y - enemy[i].boundy, enemy[i].x + (enemy[i].boundx / 2), enemy[i].y, al_map_rgba(255, 0, 255, 100));
-			}
+			al_draw_bitmap_region(wrogowie, fx, fy, enemy[i].frameWidth, enemy[i].frameHeight, enemy[i].x - enemy[i].frameWidth / 2, enemy[i].y, 0);			
 		}
 
 	}
@@ -370,11 +368,11 @@ void UpdateEnemy(Enemy enemy[],int size ,int maxFrame, int curFrame, int frameCo
 	{
 		if (enemy[i].live)
 		{
-			if (enemy[i].x <= 370)
+			if (enemy[i].x<=370)
 				enemy[i].x = 370;
 			else
 				enemy[i].x -= enemy[i].speed;
-
+				
 			if (++enemy[i].frameCount >= enemy[i].frameDelay)
 			{
 				enemy[i].curFrame += enemy[i].animationDirection;
@@ -383,13 +381,14 @@ void UpdateEnemy(Enemy enemy[],int size ,int maxFrame, int curFrame, int frameCo
 
 				else if (enemy[i].curFrame <= 0)
 					enemy[i].curFrame = enemy[i].maxFrame - 1;
-
+				
 				enemy[i].frameCount = 0;
+				
 			}
 
 
 		}
-
+		
 	}
 	
 	
