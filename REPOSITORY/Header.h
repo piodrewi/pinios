@@ -9,7 +9,7 @@ struct Tower
 	bool live;
 	int boundx;
 	int boundy;
-	int hp;
+	float hp;
 };
 struct Player
 {
