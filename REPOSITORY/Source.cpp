@@ -4,6 +4,8 @@
 #include <allegro5\allegro_image.h>
 #include <allegro5\allegro_font.h>
 #include <allegro5\allegro_ttf.h>
+#include <allegro5\allegro_audio.h>
+#include <allegro5\allegro_acodec.h>
 #include <math.h>
 #include <time.h>
 #include "Header.h"
@@ -12,9 +14,14 @@
 const int width = 1366;
 const int height = 768;
 const int NUM_BULLETS = 5;
-const int NUM_ENEMYS =	5;
+const int NUM_ENEMYS = 5;
 const int maxFrame = 8;
 
+ALLEGRO_SAMPLE *muzyka = NULL;
+ALLEGRO_SAMPLE *strzal = NULL;
+ALLEGRO_SAMPLE *over = NULL;
+ALLEGRO_SAMPLE_INSTANCE *muzykastala = NULL;
+ALLEGRO_SAMPLE_INSTANCE *overstala = NULL;
 
 enum KEYS{ LEFT, RIGHT };
 bool keys[2] = { FALSE, FALSE };
@@ -31,16 +38,16 @@ void DrawBullet(Bullet bullet[], int size);
 void FireBullet(Bullet bullet[], int size, Player &player);
 void UpdateBullet(Bullet bullet[], int size, double  pozycja_myszki_X, double  pozycja_myszki_Y);
 
-void CollideEnemy(Bullet bullet[], int bSize, Enemy enemy[],int cSize,Player &player);
+void CollideEnemy(Bullet bullet[], int bSize, Enemy enemy[], int cSize, Player &player);
 
-void InitEnemy(Enemy enemy[],int size);
-void DrawEnemy(Enemy enemy[],int size, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie,ALLEGRO_BITMAP *ataki);
-void StartEnemy(Enemy enemy[],int size);
-void UpdateEnemy(Enemy enemy[],int size, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie, ALLEGRO_BITMAP *czarodziej2);
+void InitEnemy(Enemy enemy[], int size);
+void DrawEnemy(Enemy enemy[], int size, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie, ALLEGRO_BITMAP *ataki);
+void StartEnemy(Enemy enemy[], int size);
+void UpdateEnemy(Enemy enemy[], int size, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie, ALLEGRO_BITMAP *czarodziej2);
 
 void InitTower(Tower &tower);
 void DrawTower(Tower &tower, ALLEGRO_BITMAP *wieza);
-void UpdateTower(Tower &tower,int size,Enemy enemy[]);
+void UpdateTower(Tower &tower, int size, Enemy enemy[]);
 
 int main(void)
 {
@@ -74,7 +81,8 @@ int main(void)
 	ALLEGRO_BITMAP *czarodziej_strzal2 = NULL;
 	ALLEGRO_BITMAP *wrogowie = NULL;
 	ALLEGRO_BITMAP *ataki = NULL;
-	
+	ALLEGRO_BITMAP *menu = NULL;
+	bool menju = false;
 	ALLEGRO_TIMER *timer = NULL;
 	ALLEGRO_FONT *font = NULL;
 
@@ -105,13 +113,12 @@ int main(void)
 	al_init_ttf_addon();
 	al_install_keyboard();
 	al_install_mouse();
+	al_install_audio();
+	al_init_acodec_addon();
 
 	// INIT FUNCTIONS.
 	srand(time(NULL));
-	InitPlayer(player);
-	InitBullet(bullets, NUM_BULLETS);
-	InitEnemy(enemy, NUM_ENEMYS);
-	InitTower(tower);
+	
 	font = al_load_font("arial.ttf", 21, 0);
 	// BITMAPS
 	mapa = al_load_bitmap("mapa.png");
@@ -122,14 +129,63 @@ int main(void)
 	wrogowie = al_load_bitmap("wrogie2.png");
 	wieza = al_load_bitmap("wiezyczka2.png");
 	ataki = al_load_bitmap("ataki.png");
+	menu = al_load_bitmap("menu.png");
+
+	
+	al_reserve_samples(10);
+	muzyka = al_load_sample("muza.ogg");
+	strzal = al_load_sample("strzal.ogg");
+	over = al_load_sample("over.ogg");
 
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
 	al_register_event_source(event_queue, al_get_mouse_event_source());
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 	al_start_timer(timer);
 
+	muzykastala = al_create_sample_instance(muzyka);
+	al_set_sample_instance_playmode(muzykastala, ALLEGRO_PLAYMODE_LOOP);
+	al_attach_sample_instance_to_mixer(muzykastala,al_get_default_mixer());
+	
+	overstala = al_create_sample_instance(over);
+	al_set_sample_instance_playmode(overstala, ALLEGRO_PLAYMODE_LOOP);
+	al_attach_sample_instance_to_mixer(overstala, al_get_default_mixer());
+
+
+	while (!menju)
+	{
+		al_draw_bitmap(menu, 0, 0, 0);
+		al_flip_display();
+		ALLEGRO_EVENT evv;
+		al_wait_for_event(event_queue, &evv);
+
+		if (evv.type == ALLEGRO_EVENT_KEY_UP)
+		{
+			switch (evv.keyboard.keycode)
+			{
+			case ALLEGRO_KEY_ESCAPE:
+			{
+				menju = true;
+				done = true;
+				break;
+			}
+			case ALLEGRO_KEY_SPACE:
+			{
+				menju = true;
+				break;
+			}
+				
+			}
+		}
+	}
+	InitPlayer(player);
+	InitBullet(bullets, NUM_BULLETS);
+	InitEnemy(enemy, NUM_ENEMYS);
+	InitTower(tower);
+
+	
 	while (!done)
 	{
+		ALLEGRO_BITMAP *menu = NULL;
 		ALLEGRO_EVENT ev;
 		al_wait_for_event(event_queue, &ev);
 
@@ -147,8 +203,8 @@ int main(void)
 			{
 				UpdateEnemy(enemy, NUM_ENEMYS, maxFrame, curFrame, frameCount, frameDelay, frameWidth, frameHeight, wrogowie, czarodziej2);
 				StartEnemy(enemy, NUM_ENEMYS);
-				CollideEnemy(bullets, NUM_BULLETS, enemy, NUM_ENEMYS,player);
-				UpdateTower(tower,NUM_ENEMYS,enemy);
+				CollideEnemy(bullets, NUM_BULLETS, enemy, NUM_ENEMYS, player);
+				UpdateTower(tower, NUM_ENEMYS, enemy);
 				if (tower.hp <= 0)
 				{
 					koniec = true;
@@ -198,7 +254,7 @@ int main(void)
 			if (ev.mouse.button & 1)
 			{
 				if (!postac)
-					FireBullet(bullets, NUM_BULLETS, player);
+				FireBullet(bullets, NUM_BULLETS, player);
 				al_flip_display();
 			}
 		}
@@ -210,6 +266,7 @@ int main(void)
 			DrawTower(tower, wieza);
 			if (!koniec)
 			{
+				al_play_sample_instance(muzykastala);
 				DrawBullet(bullets, NUM_BULLETS);
 				UpdateBullet(bullets, NUM_BULLETS, pozycja_myszki_X, pozycja_myszki_Y);
 				DrawEnemy(enemy, NUM_ENEMYS, maxFrame, curFrame, frameCount, frameDelay, frameWidth, frameHeight, wrogowie, ataki);
@@ -217,6 +274,8 @@ int main(void)
 			}
 			else
 			{
+				al_stop_sample_instance(muzykastala);
+				al_play_sample_instance(overstala);
 				al_draw_textf(font, al_map_rgb(255, 0, 255), width / 2, height / 2, ALLEGRO_ALIGN_CENTRE, "KONIEC GRY, TWOJ WYNIK TO:%i ZABITYCH POTWOROW", player.score);
 			}
 			DrawPlayer(player, czarodziej, czarodziej2, postac);
@@ -226,7 +285,9 @@ int main(void)
 	}
 
 
-
+	al_destroy_sample(over);
+	al_destroy_sample(strzal);
+	al_destroy_sample(muzyka);
 	al_destroy_bitmap(wrogowie);
 	al_destroy_bitmap(mapa);
 	al_destroy_bitmap(czarodziej_strzal1);
@@ -295,6 +356,7 @@ void FireBullet(Bullet bullet[], int size, Player &player)
 		{
 			bullet[i].x = player.x + 145;
 			bullet[i].y = player.y;
+			al_play_sample(strzal, 1, 1, 1, ALLEGRO_PLAYMODE_ONCE, NULL);
 			bullet[i].live = true;
 			break;
 		}
@@ -307,8 +369,8 @@ void UpdateBullet(Bullet bullet[], int size, double  pozycja_myszki_X, double  p
 		if (bullet[i].live)
 		{
 			bullet[i].angle = atan2(pozycja_myszki_X, pozycja_myszki_Y);
-			bullet[i].x +=sin(bullet[i].angle) * 5;
-			bullet[i].y +=cos(bullet[i].angle) * 5;
+			bullet[i].x += sin(bullet[i].angle) * 5;
+			bullet[i].y += cos(bullet[i].angle) * 5;
 			if (bullet[i].x > width || bullet[i].y>height)
 				bullet[i].live = false;
 		}
@@ -316,7 +378,7 @@ void UpdateBullet(Bullet bullet[], int size, double  pozycja_myszki_X, double  p
 	}
 }
 
-void InitEnemy(Enemy enemy[],int size)
+void InitEnemy(Enemy enemy[], int size)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -324,7 +386,7 @@ void InitEnemy(Enemy enemy[],int size)
 		enemy[i].live = false;
 		enemy[i].speed = 3;
 		enemy[i].boundx = 120;
-		enemy[i].boundy = -128; 
+		enemy[i].boundy = -128;
 		enemy[i].maxFrame = 8;
 		enemy[i].curFrame = 0;
 		enemy[i].frameCount = 0;
@@ -352,15 +414,15 @@ void DrawEnemy(Enemy enemy[], int size, int maxFrame, int curFrame, int frameCou
 			int fyy = (enemy[i].curFrame / enemy[i].animationColumns1)*enemy[i].frameHeight1;
 
 			if (enemy[i].x <= 370)
-			al_draw_bitmap_region(ataki, fxx, fyy, enemy[i].frameWidth1, enemy[i].frameHeight1, enemy[i].x - enemy[i].frameWidth1 / 2, enemy[i].y, 0);
-			
+				al_draw_bitmap_region(ataki, fxx, fyy, enemy[i].frameWidth1, enemy[i].frameHeight1, enemy[i].x - enemy[i].frameWidth1 / 2, enemy[i].y, 0);
+
 			else
-			al_draw_bitmap_region(wrogowie, fx, fy, enemy[i].frameWidth, enemy[i].frameHeight, enemy[i].x - enemy[i].frameWidth / 2, enemy[i].y, 0);			
+				al_draw_bitmap_region(wrogowie, fx, fy, enemy[i].frameWidth, enemy[i].frameHeight, enemy[i].x - enemy[i].frameWidth / 2, enemy[i].y, 0);
 		}
 
 	}
 }
-void StartEnemy(Enemy enemy[],int size)
+void StartEnemy(Enemy enemy[], int size)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -376,40 +438,40 @@ void StartEnemy(Enemy enemy[],int size)
 	}
 
 }
-void UpdateEnemy(Enemy enemy[],int size ,int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie, ALLEGRO_BITMAP *ataki)
+void UpdateEnemy(Enemy enemy[], int size, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie, ALLEGRO_BITMAP *ataki)
 {
-	
+
 	for (int i = 0; i < size; i++)
 	{
 		if (enemy[i].live)
 		{
-			if (enemy[i].x<=370)
+			if (enemy[i].x <= 370)
 				enemy[i].x = 370;
 			else
 				enemy[i].x -= enemy[i].speed;
-				
+
 			if (++enemy[i].frameCount >= enemy[i].frameDelay)
 			{
 				enemy[i].curFrame += enemy[i].animationDirection;
-			 	if (enemy[i].curFrame >= enemy[i].maxFrame)
+				if (enemy[i].curFrame >= enemy[i].maxFrame)
 					enemy[i].curFrame = 0;
 
 				else if (enemy[i].curFrame <= 0)
 					enemy[i].curFrame = enemy[i].maxFrame - 1;
-				
+
 				enemy[i].frameCount = 0;
-				
+
 			}
 
 
 		}
-		
+
 	}
-	
-	
+
+
 }
 
-void CollideEnemy(Bullet bullet[], int bSize, Enemy enemy[],int cSize,Player &player)
+void CollideEnemy(Bullet bullet[], int bSize, Enemy enemy[], int cSize, Player &player)
 {
 	for (int i = 0; i < bSize; i++)
 	{
@@ -421,10 +483,10 @@ void CollideEnemy(Bullet bullet[], int bSize, Enemy enemy[],int cSize,Player &pl
 				{
 					if (enemy[j].x <= 370)
 					{
-						if (bullet[i].x >300		 &&
-							bullet[i].x	<420		 &&
+						if (bullet[i].x >300 &&
+							bullet[i].x	<420 &&
 							bullet[i].y	<height		 &&
-							bullet[i].y >height-300)
+							bullet[i].y >height - 300)
 						{
 							bullet[i].live = false;
 							enemy[j].live = false;
@@ -434,8 +496,8 @@ void CollideEnemy(Bullet bullet[], int bSize, Enemy enemy[],int cSize,Player &pl
 					}
 					else
 					{
-						if (bullet[i].x	>	enemy[j].x - (enemy[j].boundx / 2)	&&
-							bullet[i].x <	enemy[j].x + (enemy[j].boundx/2)	&&
+						if (bullet[i].x	>	enemy[j].x - (enemy[j].boundx / 2) &&
+							bullet[i].x <	enemy[j].x + (enemy[j].boundx / 2) &&
 							bullet[i].y	<	enemy[j].y							&&
 							bullet[i].y >	enemy[j].y + enemy[j].boundy)
 						{
@@ -461,15 +523,16 @@ void InitTower(Tower &tower)
 void DrawTower(Tower &tower, ALLEGRO_BITMAP *wieza)
 {
 	al_draw_bitmap(wieza, tower.x, tower.y, 0);
-	al_draw_filled_rectangle(50, height-50, 320, 400, al_map_rgba(0, 0, 0, 0));
+	al_draw_filled_rectangle(50, height - 50, 320, 400, al_map_rgba(0, 0, 0, 0));
 }
-void UpdateTower(Tower &tower,int size,Enemy enemy[])
+
+void UpdateTower(Tower &tower, int size, Enemy enemy[])
 {
 	for (int i = 0; i < size; i++)
 	{
 		if (enemy[i].x <= 370 && enemy[i].live)
 		{
-			tower.hp -=0.1;
+			tower.hp -= 0.1;
 		}
 	}
 }
