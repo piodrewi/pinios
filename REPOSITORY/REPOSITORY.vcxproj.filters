@@ -29,9 +29,6 @@
     <Image Include="wiezyczka2.png">
       <Filter>Source Files</Filter>
     </Image>
-    <Image Include="wrogie.png">
-      <Filter>Source Files</Filter>
-    </Image>
     <Image Include="mapa.png">
       <Filter>Source Files</Filter>
     </Image>
@@ -39,15 +36,6 @@
       <Filter>Source Files</Filter>
     </Image>
     <Image Include="menu.png">
-      <Filter>Source Files</Filter>
-    </Image>
-    <Image Include="strzelajacylewo.png">
-      <Filter>Source Files</Filter>
-    </Image>
-    <Image Include="strzelajacyprawo.png">
-      <Filter>Source Files</Filter>
-    </Image>
-    <Image Include="wrogie2.png">
       <Filter>Source Files</Filter>
     </Image>
   </ItemGroup>
@@ -60,16 +48,5 @@
     <Font Include="arial.ttf">
       <Filter>Source Files</Filter>
     </Font>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="muza.ogg">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="over.ogg">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="strzal.ogg">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

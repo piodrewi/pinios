@@ -46,7 +46,7 @@ void StartEnemy(Enemy enemy[], int size);
 void UpdateEnemy(Enemy enemy[], int size, int maxFrame, int curFrame, int frameCount, int frameDelay, int frameWidth, int frameHeight, ALLEGRO_BITMAP *wrogowie, ALLEGRO_BITMAP *czarodziej2);
 
 void InitTower(Tower &tower);
-void DrawTower(Tower &tower, ALLEGRO_BITMAP *wieza);
+void DrawTower(Tower &tower, ALLEGRO_BITMAP *wieza, ALLEGRO_BITMAP *wieza1, ALLEGRO_BITMAP *wieza2, ALLEGRO_BITMAP *wieza3);
 void UpdateTower(Tower &tower, int size, Enemy enemy[]);
 
 int main(void)
@@ -77,6 +77,9 @@ int main(void)
 	ALLEGRO_BITMAP *czarodziej2 = NULL;
 	ALLEGRO_BITMAP *mapa = NULL;
 	ALLEGRO_BITMAP *wieza = NULL;
+	ALLEGRO_BITMAP *wieza1 = NULL;
+	ALLEGRO_BITMAP *wieza2 = NULL;
+	ALLEGRO_BITMAP *wieza3 = NULL;
 	ALLEGRO_BITMAP *czarodziej_strzal1 = NULL;
 	ALLEGRO_BITMAP *czarodziej_strzal2 = NULL;
 	ALLEGRO_BITMAP *wrogowie = NULL;
@@ -118,8 +121,8 @@ int main(void)
 
 	// INIT FUNCTIONS.
 	srand(time(NULL));
-	
-	font = al_load_font("arial.ttf", 21, 0);
+
+	font = al_load_font("arial.ttf", 26, 0);
 	// BITMAPS
 	mapa = al_load_bitmap("mapa.png");
 	czarodziej = al_load_bitmap("2.png");
@@ -130,8 +133,9 @@ int main(void)
 	wieza = al_load_bitmap("wiezyczka2.png");
 	ataki = al_load_bitmap("ataki.png");
 	menu = al_load_bitmap("menu.png");
-
-	
+	wieza1 = al_load_bitmap("palisie1.png");
+	wieza2 = al_load_bitmap("palisie2.png");
+	wieza3 = al_load_bitmap("palisie3.png");
 	al_reserve_samples(10);
 	muzyka = al_load_sample("muza.ogg");
 	strzal = al_load_sample("strzal.ogg");
@@ -144,8 +148,8 @@ int main(void)
 
 	muzykastala = al_create_sample_instance(muzyka);
 	al_set_sample_instance_playmode(muzykastala, ALLEGRO_PLAYMODE_LOOP);
-	al_attach_sample_instance_to_mixer(muzykastala,al_get_default_mixer());
-	
+	al_attach_sample_instance_to_mixer(muzykastala, al_get_default_mixer());
+
 	overstala = al_create_sample_instance(over);
 	al_set_sample_instance_playmode(overstala, ALLEGRO_PLAYMODE_LOOP);
 	al_attach_sample_instance_to_mixer(overstala, al_get_default_mixer());
@@ -173,7 +177,7 @@ int main(void)
 				menju = true;
 				break;
 			}
-				
+
 			}
 		}
 	}
@@ -182,7 +186,7 @@ int main(void)
 	InitEnemy(enemy, NUM_ENEMYS);
 	InitTower(tower);
 
-	
+
 	while (!done)
 	{
 		ALLEGRO_BITMAP *menu = NULL;
@@ -254,7 +258,7 @@ int main(void)
 			if (ev.mouse.button & 1)
 			{
 				if (!postac)
-				FireBullet(bullets, NUM_BULLETS, player);
+					FireBullet(bullets, NUM_BULLETS, player);
 				al_flip_display();
 			}
 		}
@@ -263,14 +267,15 @@ int main(void)
 		{
 			redraw = false;
 			al_draw_bitmap(mapa, 0, 0, 0);
-			DrawTower(tower, wieza);
+			DrawTower(tower, wieza,wieza1,wieza2,wieza3);
 			if (!koniec)
 			{
 				al_play_sample_instance(muzykastala);
 				DrawBullet(bullets, NUM_BULLETS);
 				UpdateBullet(bullets, NUM_BULLETS, pozycja_myszki_X, pozycja_myszki_Y);
 				DrawEnemy(enemy, NUM_ENEMYS, maxFrame, curFrame, frameCount, frameDelay, frameWidth, frameHeight, wrogowie, ataki);
-				al_draw_textf(font, al_map_rgb(255, 0, 255), 5, 5, 0, "TWOJA WIEZA MA %.f ZYCIA ORAZ ZABILES %i PRZECIWNIKOW", tower.hp, player.score);
+				al_draw_textf(font, al_map_rgb(255, 0, 0), 145, 470, 0, "%.f HP", tower.hp);
+				al_draw_textf(font, al_map_rgb(0, 0, 0), 5, 5, 0,"ZABILES %i PRZECIWNIKOW", player.score);
 			}
 			else
 			{
@@ -520,9 +525,16 @@ void InitTower(Tower &tower)
 	tower.ID = TOWER;
 	tower.hp = 100;
 }
-void DrawTower(Tower &tower, ALLEGRO_BITMAP *wieza)
+void DrawTower(Tower &tower, ALLEGRO_BITMAP *wieza, ALLEGRO_BITMAP *wieza1, ALLEGRO_BITMAP *wieza2, ALLEGRO_BITMAP *wieza3)
 {
-	al_draw_bitmap(wieza, tower.x, tower.y, 0);
+	if (tower.hp < 110 && tower.hp>60)
+		al_draw_bitmap(wieza, tower.x, tower.y, 0);
+	else if (tower.hp < 60 && tower.hp>40)
+		al_draw_bitmap(wieza1, tower.x, tower.y, 0);
+	else if (tower.hp < 40 && tower.hp>20)
+		al_draw_bitmap(wieza2, tower.x, tower.y, 0);
+	else if (tower.hp < 20)
+		al_draw_bitmap(wieza3, tower.x, tower.y, 0);
 	al_draw_filled_rectangle(50, height - 50, 320, 400, al_map_rgba(0, 0, 0, 0));
 }
 
